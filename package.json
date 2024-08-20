@@ -11,8 +11,8 @@
     "@testing-library/user-event": "^12.1.10",
     "@types/jest": "^26.0.20",
     "@types/node": "^14.14.25",
-    "@types/react": "^17.0.1",
-    "@types/react-dom": "^17.0.0",
+    "@types/react": "^18.3.4",
+    "@types/react-dom": "^18.3.0",
     "@types/recharts": "^2.0.0",
     "aws-sdk": "^2.859.0",
     "axios": "^0.21.1",
@@ -52,8 +52,7 @@
     "lint:watch": "DISABLE_ESLINT_PLUGIN=true esw --ext .ts --ext .tsx src --fix"
   },
   "eslintConfig": {
-    "extends": [
-    ]
+    "extends": []
   },
   "browserslist": {
     "production": [
@@ -70,7 +69,7 @@
   "devDependencies": {
     "@types/react-js-pagination": "^3.0.3",
     "@types/react-redux": "^7.1.16",
-    "@types/react-router-dom": "^5.1.7",
+    "@types/react-router-dom": "^5.3.3",
     "@typescript-eslint/eslint-plugin": "^4.26.0",
     "@typescript-eslint/parser": "^4.26.0",
     "eslint": "^7.27.0",
