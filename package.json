@@ -47,7 +47,6 @@
     "build": "DISABLE_ESLINT_PLUGIN=true react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "prepare": "husky install",
     "lint": "eslint --ext .ts --ext .tsx src --fix",
     "lint:watch": "esw --ext .ts --ext .tsx src --fix"
   },
