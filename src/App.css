@@ -1,0 +1,62 @@
+main {
+  gap: 20px
+}
+.curriculum-title{
+  font-size: 0.875rem;
+  font-family: "Roboto", "Helvetica", "Arial", sans-serif;
+  font-weight: 500;
+  line-height: 1.75;
+  white-space: normal;
+  letter-spacing: 0.02857em;
+  text-transform: uppercase;
+  border-bottom: 1px solid grey;
+  padding-left: 10px;
+  padding: 6px 12px;
+}
+.curriculum-container{
+  border: 1px solid grey;
+  margin-bottom: 10px;
+}
+.curriculum-inner-container{
+  display: inline-flex;
+  flex-wrap: wrap;
+}
+.curriculum-inner-container div{
+  padding: 20px;
+}
+
+.category-tag {
+  display: inline-block;
+  background-color: #eaeaea;
+  border-radius: 4px;
+  position: relative;
+  padding: 6px;
+  padding-right: 25px;
+  font-size: 12px;
+  cursor: pointer;
+  margin: 4px;
+  font-size: 0.875rem;
+}
+
+.category-tag::after,
+.category-tag::before {
+  content: '';
+  height: 13px; /* tweak this change the size of the X */
+  top:22%;
+  width: 2px; /* tweak this change the thickness of the X */
+  background: #000; /* change this change the color of the X */
+  -webkit-transform:translate(-50%,-50%) rotate(45deg);
+  -ms-transform:translate(-50%,-50%) rotate(45deg);
+  -o-transform:translate(-50%,-50%) rotate(45deg);
+  transform:translate(-50%,-50%) rotate(45deg);
+  position: absolute;
+  right: 13px;
+  transition: all ease-in-out 0.3s;
+}
+.category-tag::before {
+  transform: translate(-50%,-50%) rotate(-45deg);
+}
+
+.lesson-question-sequence-number:hover{
+  cursor: pointer;
+}

@@ -1,0 +1,128 @@
+name: Deploy to dev and prod
+
+on:
+  push:
+    branches:
+      - master
+      - dev
+
+jobs:
+  deploy:
+    name: deploy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup Node
+        uses: actions/setup-node@v2-beta
+        with:
+          node-version: "14.x"
+
+      - name: Cache dependencies
+        uses: actions/cache@v2
+        with:
+          path: ~/.cache/yarn
+          key: ${{ runner.os }}-node-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+      - run: yarn install
+      - run: yarn build
+        if: github.ref == 'refs/heads/dev'
+        env:
+          REACT_APP_API_URL: ${{ secrets.BASE_API_DEV_URL }}
+          REACT_APP_RECHARGE_API_URL: ${{ secrets.BASE_RECHARGE_API_DEV_URL }}
+          REACT_APP_AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          REACT_APP_AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          REACT_APP_AWS_MEDIA_BUCKET: ${{ secrets.AWS_MEDIA_BUCKET_DEV }}
+          CI: false
+
+      - run: yarn build
+        if: github.ref == 'refs/heads/staging'
+        env:
+          REACT_APP_API_URL: ${{ secrets.BASE_API_STAGING_URL }}
+          REACT_APP_RECHARGE_API_URL: ${{ secrets.BASE_RECHARGE_API_STAG_URL }}
+          REACT_APP_AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          REACT_APP_AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          REACT_APP_AWS_MEDIA_BUCKET: ${{ secrets.AWS_MEDIA_BUCKET_STAG }}
+          CI: false
+
+      - run: yarn build
+        if: github.ref == 'refs/heads/master'
+        env:
+          REACT_APP_API_URL: ${{ secrets.BASE_API_URL }}
+          REACT_APP_RECHARGE_API_URL: ${{ secrets.BASE_RECHARGE_API_URL }}
+          REACT_APP_AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          REACT_APP_AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          REACT_APP_AWS_MEDIA_BUCKET: ${{ secrets.AWS_MEDIA_BUCKET }}
+          CI: false
+
+      # Set the credentials from repository settings/secrets
+      - name: Configure AWS credentials
+        if: github.ref == 'refs/heads/dev'
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_DEFAULT_REGION }}
+
+      # Copy the files from build folder to the S3 bucket
+      - name: Deploy to S3 and Create .env file
+        if: github.ref == 'refs/heads/dev'
+        run: |
+          aws s3 cp . s3://vessel-admin-dev --acl public-read --recursive
+          AWS_MAX_ATTEMPTS=10 aws cloudfront create-invalidation --distribution-id ${{ secrets.CF_DEV_DISTRIBUTION_ID }} --paths "/*"
+        working-directory: build
+        env:
+          REACT_APP_API_URL: ${{ secrets.BASE_API_DEV_URL }}
+          REACT_APP_RECHARGE_API_URL: ${{ secrets.BASE_RECHARGE_API_DEV_URL }}
+          REACT_APP_AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          REACT_APP_AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          REACT_APP_AWS_MEDIA_BUCKET: ${{ secrets.AWS_MEDIA_BUCKET_DEV }}
+
+      # ------------ staging -------------------
+      # Set the credentials from repository settings/secrets
+      - name: Configure AWS credentials
+        if: github.ref == 'refs/heads/staging'
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_DEFAULT_REGION }}
+
+      # Copy the files from build folder to the S3 bucket
+      - name: Deploy to S3 and Create .env file
+        if: github.ref == 'refs/heads/staging'
+        run: |
+          aws s3 cp . s3://vessel-admin-staging --acl public-read --recursive
+          AWS_MAX_ATTEMPTS=10 aws cloudfront create-invalidation --distribution-id ${{ secrets.CF_STAGING_DISTRIBUTION_ID }} --paths "/*"
+        working-directory: build
+        env:
+          REACT_APP_API_URL: ${{ secrets.BASE_API_STAGING_URL }}
+          REACT_APP_RECHARGE_API_URL: ${{ secrets.BASE_RECHARGE_API_STAGING_URL }}
+          REACT_APP_AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          REACT_APP_AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          REACT_APP_AWS_MEDIA_BUCKET: ${{ secrets.AWS_MEDIA_BUCKET_STAGING }}
+      # ------------ end staging -------------------
+
+      # Set the credentials from repository settings/secrets
+      - name: Configure AWS credentials
+        if: github.ref == 'refs/heads/master'
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_DEFAULT_REGION }}
+
+      # Copy the files from build folder to the S3 bucket
+      - name: Deploy to S3 and Create .env file
+        if: github.ref == 'refs/heads/master'
+        run: |
+          aws s3 cp . s3://vessel-admin --acl public-read --recursive
+          AWS_MAX_ATTEMPTS=10 aws cloudfront create-invalidation --distribution-id ${{ secrets.CF_DISTRIBUTION_ID }} --paths "/*"
+        working-directory: build
+        env:
+          REACT_APP_API_URL: ${{ secrets.BASE_API_URL }}
+          REACT_APP_RECHARGE_API_URL: ${{ secrets.BASE_RECHARGE_API_URL }}
+          REACT_APP_AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          REACT_APP_AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          REACT_APP_AWS_MEDIA_BUCKET: ${{ secrets.AWS_MEDIA_BUCKET }}
